@@ -67,7 +67,7 @@
           }
         </mat-hint>
       </mat-form-field>
-      <button mat-flat-button color="primary" [disabled]="!todoForm.valid">Создать</button>
+      <button mat-flat-button color="primary" [disabled]="!todoForm.valid" (click)="addTodo()">Создать</button>
     </form>
   </mat-card-content>
 </mat-card>

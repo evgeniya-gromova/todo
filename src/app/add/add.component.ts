@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -19,6 +19,9 @@ import {
   Validators
 } from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
+import {ApiService} from '../shared/api.service';
+import {Subject, takeUntil} from 'rxjs';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-add',
@@ -48,7 +51,7 @@ import {MatIcon} from '@angular/material/icon';
   templateUrl: './add.component.html',
   styleUrl: './add.component.scss'
 })
-export class AddComponent {
+export class AddComponent implements OnDestroy {
   createDateValidator(minDate: Date): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const selectedDate = control.value;
@@ -59,13 +62,17 @@ export class AddComponent {
     };
   }
 
+  destroy$ = new Subject<boolean>();
+
   minDate = new Date();
 
   todoForm = new FormGroup({
-    expirationDate: new FormControl(null, [Validators.required, this.createDateValidator(this.minDate)]),
-    expirationTime: new FormControl(''),
-    title: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    expirationDate: new FormControl<Date | null>(null, [Validators.required, this.createDateValidator(this.minDate)]),
+    expirationTime: new FormControl<Date | null>(null),
+    title: new FormControl<string>('', [Validators.required, Validators.maxLength(100)]),
   });
+
+  constructor(private apiService: ApiService, private router: Router) {}
 
   get expirationDate() {
     return this.todoForm.get('expirationDate');
@@ -82,5 +89,29 @@ export class AddComponent {
   reset(event: MouseEvent, control: AbstractControl | null) {
     event.stopPropagation();
     control?.reset();
+  }
+
+  addTodo() {
+    this.todoForm.updateValueAndValidity();
+
+    if(!this.todoForm.valid) return;
+
+    this.apiService.addTodo({
+      expirationDate: this.expirationDate?.value?.toISOString() || '',
+      expirationTime: this.expirationTime?.value?.toISOString() || '',
+      title: this.title?.value || '',
+      isDone: false,
+      isFavorite: false
+    }).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
+      console.log(data)
+      this.router.navigate(['/list']);
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next(true);
+    this.destroy$.complete();
   }
 }

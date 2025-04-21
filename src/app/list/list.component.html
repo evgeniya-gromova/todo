@@ -1,2 +1,51 @@
-<p>list works!</p>
-<app-table></app-table>
+<table mat-table [dataSource]="dataSource$" class="mat-elevation-z8">
+
+  <!-- Is Done Column -->
+  <ng-container matColumnDef="isDone">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let element">
+      <mat-checkbox [checked]="element.isDone" (click)="toggleDone(element)"></mat-checkbox>
+    </td>
+  </ng-container>
+
+  <!-- Title Column -->
+  <ng-container matColumnDef="title">
+    <th mat-header-cell *matHeaderCellDef> </th>
+    <td mat-cell *matCellDef="let element"> {{element.title}} </td>
+  </ng-container>
+
+  <!-- ExpirationDate Column -->
+  <ng-container matColumnDef="expirationDate">
+    <th mat-header-cell *matHeaderCellDef> Created at </th>
+    <td mat-cell *matCellDef="let element"> {{element.expirationDate | date:"MMM d, y"}} </td>
+  </ng-container>
+
+  <!-- ExpirationTime Column -->
+  <ng-container matColumnDef="expirationTime">
+    <th mat-header-cell *matHeaderCellDef> Time left </th>
+    <td mat-cell *matCellDef="let element"> {{element.expirationTime | dateTimeAgo}} </td>
+  </ng-container>
+
+  <!-- Is Favorite Column -->
+  <ng-container matColumnDef="isFavorite">
+    <th mat-header-cell *matHeaderCellDef> </th>
+    <td mat-cell *matCellDef="let element">
+      <mat-icon
+        (click)="toggleFavorite(element)"
+        [ngClass]="element.isFavorite ? 'favorite' : 'unfavorite'">
+        favorite
+      </mat-icon>
+    </td>
+  </ng-container>
+
+  <!-- Delete Column -->
+  <ng-container matColumnDef="delete">
+    <th mat-header-cell *matHeaderCellDef> </th>
+    <td mat-cell *matCellDef="let element">
+      <mat-icon (click)="deleteTodo(element)">delete</mat-icon>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
