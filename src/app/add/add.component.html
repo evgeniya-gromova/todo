@@ -9,29 +9,32 @@
     <mat-card-title><h2>Add TODO:</h2></mat-card-title>
   </mat-card-header>
   <mat-card-content>
-
     <form [formGroup]="todoForm">
       <mat-form-field class="full-width">
         <mat-label>Дата истечения</mat-label>
-        <input matInput [matDatepicker]="datepicker" formControlName="expirationDate" [min]="minDate">
-        <mat-datepicker #datepicker/>
-        <mat-datepicker-toggle [for]="datepicker" matSuffix/>
+        <input
+          matInput
+          [matDatepicker]="datepicker"
+          formControlName="expirationDate"
+          [min]="minDate" />
+        <mat-datepicker #datepicker />
+        <mat-datepicker-toggle [for]="datepicker" matSuffix />
 
-        <button matSuffix mat-icon-button aria-label="Clear" (click)="reset($event, expirationDate)">
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="reset($event, expirationDate)">
           <mat-icon>close</mat-icon>
         </button>
 
         <mat-hint class="error-message">
           @if (expirationDate?.touched) {
             @if (expirationDate?.hasError('required')) {
-              <span>
-                Укажите дату
-              </span>
+              <span> Укажите дату </span>
             }
             @if (expirationDate?.hasError('dateTooEarly')) {
-              <span>
-                  Укажите дату не позже текущей
-                </span>
+              <span> Укажите дату не позже текущей </span>
             }
           }
         </mat-hint>
@@ -39,14 +42,19 @@
 
       <mat-form-field class="full-width">
         <mat-label>Время истечения</mat-label>
-        <input matInput
-               [matTimepicker]="timepicker"
-               formControlName="expirationTime">
-        <mat-timepicker #timepicker/>
-        <mat-timepicker-toggle [for]="timepicker" matSuffix/>
+        <input
+          matInput
+          [matTimepicker]="timepicker"
+          formControlName="expirationTime" />
+        <mat-timepicker #timepicker />
+        <mat-timepicker-toggle [for]="timepicker" matSuffix />
 
         <!-- (click)="expirationTime?.reset()" открывал окно с выбором времени -->
-        <button matSuffix mat-icon-button aria-label="Clear" (click)="reset($event, expirationTime)">
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="reset($event, expirationTime)">
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
@@ -55,19 +63,27 @@
         <mat-label>Заголовок</mat-label>
         <textarea matInput formControlName="title"></textarea>
 
-        <button matSuffix mat-icon-button aria-label="Clear" (click)="reset($event, title)">
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="reset($event, title)">
           <mat-icon>close</mat-icon>
         </button>
 
         <mat-hint class="error-message">
           @if (title?.touched && title?.hasError('required')) {
-            <span>
-              Укажите заголовок
-            </span>
+            <span> Укажите заголовок </span>
           }
         </mat-hint>
       </mat-form-field>
-      <button mat-flat-button color="primary" [disabled]="!todoForm.valid" (click)="addTodo()">Создать</button>
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!todoForm.valid"
+        (click)="addTodo()">
+        Создать
+      </button>
     </form>
   </mat-card-content>
 </mat-card>

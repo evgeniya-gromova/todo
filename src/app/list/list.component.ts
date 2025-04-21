@@ -1,21 +1,32 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import {
-  MatCell, MatCellDef,
+  MatCell,
+  MatCellDef,
   MatColumnDef,
   MatHeaderCell,
   MatHeaderCellDef,
-  MatHeaderRow, MatHeaderRowDef,
-  MatRow, MatRowDef,
-  MatTable
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable,
 } from '@angular/material/table';
-import {MatCheckbox} from '@angular/material/checkbox';
-import {MatIcon} from '@angular/material/icon';
-import {DatePipe, NgClass} from '@angular/common';
-import {map, Observable, of, Subject} from 'rxjs';
-import {DateTimeAgoPipe} from '../shared/date-time-ago.pipe';
-import {Todo} from '../shared/todo.interface';
-import {ApiService} from '../shared/api.service';
-import {ActivatedRoute} from '@angular/router';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatIcon } from '@angular/material/icon';
+import { DatePipe, NgClass } from '@angular/common';
+import { catchError, map, of } from 'rxjs';
+import { DateTimeAgoPipe } from '../shared/date-time-ago.pipe';
+import { Todo } from '../shared/todo.interface';
+import { ApiService } from '../shared/api.service';
+import { ActivatedRoute } from '@angular/router';
+import { isSameDayFunction } from '../shared/is-same-day.function';
+import {
+  MatAccordion,
+  MatExpansionModule,
+  MatExpansionPanel,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-list',
@@ -37,38 +48,116 @@ import {ActivatedRoute} from '@angular/router';
     DatePipe,
     DateTimeAgoPipe,
     DateTimeAgoPipe,
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelTitle,
+    MatExpansionModule,
   ],
   templateUrl: './list.component.html',
-  styleUrl: './list.component.scss'
+  styleUrl: './list.component.scss',
 })
-export class ListComponent implements OnDestroy, OnInit {
-  destroy$ = new Subject<boolean>();
-  mode$: Observable<'list' | 'favorite'> = of('list');
-  dataSource$: Observable<Todo[]> = of([]);
+export class ListComponent {
+  private readonly apiService = inject(ApiService);
+  private readonly route = inject(ActivatedRoute);
 
-  displayedColumns: string[] = ['isDone', 'title', 'expirationDate', 'expirationTime', 'isFavorite', 'delete'];
+  readonly todos = signal<Todo[]>([]);
+  readonly error = signal<string | null>(null);
+  readonly loading = signal<boolean>(false);
 
-  constructor(private apiService: ApiService, private route: ActivatedRoute) {}
+  private readonly mode$ = this.route.data.pipe(
+    map(data => data['mode'] || 'list')
+  );
+  readonly mode = toSignal(this.mode$, { initialValue: 'list' });
 
-  ngOnInit() {
-    this.dataSource$ = this.apiService.getTodoList();
-    this.mode$ = this.route.data.pipe(map(data=> data['mode'] || 'list'));
+  readonly todayTodoList = computed(() =>
+    this.todos().filter(todo =>
+      isSameDayFunction(new Date(todo.expirationDate), new Date())
+    )
+  );
+  readonly upcomingTodoList = computed(() =>
+    this.todos().filter(
+      todo => !isSameDayFunction(new Date(todo.expirationDate), new Date())
+    )
+  );
+  readonly favoriteTodoList = computed(() =>
+    this.todos().filter(todo => todo.isFavorite)
+  );
 
+  displayedColumns: string[] = [
+    'isDone',
+    'title',
+    'expirationDate',
+    'expirationTime',
+    'isFavorite',
+    'delete',
+  ];
+
+  constructor() {
+    effect(() => {
+      this.loading.set(true);
+      this.error.set(null);
+
+      this.apiService.getTodoList();
+      this.apiService
+        .getTodoList()
+        .pipe(
+          catchError(err => {
+            this.error.set('Ошибка при загрузке данных');
+            return of([]);
+          })
+        )
+        .subscribe(result => {
+          this.todos.set(result);
+          this.loading.set(false);
+        });
+    });
   }
 
-  toggleFavorite(element: Todo) {
-    this.dataSource$ = this.apiService.updateTodo({...element, isFavorite: !element.isFavorite});
-  }
-  toggleDone(element: Todo) {
-    this.dataSource$ = this.apiService.updateTodo({...element, isDone: !element.isDone});
+  toggleFavorite(todo: Todo) {
+    const updated = { ...todo, isFavorite: !todo.isFavorite };
+
+    this.apiService
+      .updateTodo(updated)
+      .pipe(
+        catchError(err => {
+          this.error.set('Ошибка при обновлении избранного');
+          return of(null);
+        })
+      )
+      .subscribe(result => {
+        if (result) this.todos.set(result);
+      });
   }
 
-  deleteTodo(element: Todo) {
-    this.dataSource$ = this.apiService.deleteTask(element);
+  toggleDone(todo: Todo) {
+    const updated = { ...todo, isDone: !todo.isDone };
+
+    this.apiService
+      .updateTodo(updated)
+      .pipe(
+        catchError(err => {
+          this.error.set('Ошибка при обновлении статуса');
+          return of(null);
+        })
+      )
+      .subscribe(result => {
+        if (result) this.todos.set(result);
+      });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
+  deleteTodo(todo: Todo) {
+    this.apiService
+      .deleteTask(todo)
+      .pipe(
+        catchError(err => {
+          this.error.set('Ошибка при удалении');
+          return of(null);
+        })
+      )
+      .subscribe(result => {
+        if (result !== null) {
+          this.todos.set(result);
+        }
+      });
   }
 }

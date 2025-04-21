@@ -1,22 +1,33 @@
 @use '@angular/material' as mat;
 
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
 
 @include mat.core();
 
-$primary-palette: mat.m2-define-palette(mat.$m2-deep-purple-palette, 600, 300, 800);
+$primary-palette: mat.m2-define-palette(
+  mat.$m2-deep-purple-palette,
+  600,
+  300,
+  800
+);
 $accent-palette: mat.m2-define-palette(mat.$m2-deep-purple-palette, 800);
 
-$custom-theme: mat.m2-define-light-theme((
-  color: (
-    primary: $primary-palette,
-    accent: $accent-palette,
-  ),
-  typography: mat.m2-define-typography-config(),
-  density: 0,
-));
-
+$custom-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $primary-palette,
+      accent: $accent-palette,
+    ),
+    typography: mat.m2-define-typography-config(),
+    density: 0,
+  )
+);
 
 @include mat.all-component-themes($custom-theme);
