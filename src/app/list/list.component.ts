@@ -27,6 +27,8 @@ import {
   MatExpansionPanelTitle,
 } from '@angular/material/expansion';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'app-list',
@@ -52,6 +54,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatExpansionPanel,
     MatExpansionPanelTitle,
     MatExpansionModule,
+    MatButton,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',
@@ -59,6 +62,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export class ListComponent {
   private readonly apiService = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private snackBar = inject(MatSnackBar);
 
   readonly todos = signal<Todo[]>([]);
   readonly error = signal<string | null>(null);
@@ -94,10 +98,13 @@ export class ListComponent {
 
   constructor() {
     effect(() => {
+      if (this.error() !== null) {
+        this.snackBar.open(<string>this.error(), 'x');
+      }
+
       this.loading.set(true);
       this.error.set(null);
 
-      this.apiService.getTodoList();
       this.apiService
         .getTodoList()
         .pipe(
@@ -151,6 +158,23 @@ export class ListComponent {
       .pipe(
         catchError(err => {
           this.error.set('Ошибка при удалении');
+          return of(null);
+        })
+      )
+      .subscribe(result => {
+        if (result !== null) {
+          this.todos.set(result);
+        }
+      });
+  }
+
+  showError(todo: Todo) {
+    this.apiService
+      .addTodoWitError({ ...todo, expirationDate: new Date() })
+      .pipe(
+        catchError(err => {
+          console.log(err);
+          this.error.set('Ошибка при добавлении');
           return of(null);
         })
       )
