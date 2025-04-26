@@ -196,6 +196,18 @@
 <button
   mat-flat-button
   color="primary"
-  (click)="showError(todos()[0])">
+  (click)="showError()">
   Создать ошибку
 </button>
+
+@if (loading()) {
+  <div class="overlay">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="60"
+      strokeWidth="5"
+      color="primary">
+    </mat-progress-spinner>
+  </div>
+}
+

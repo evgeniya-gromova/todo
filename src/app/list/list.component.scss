@@ -10,3 +10,23 @@ table {
 .unfavorite {
   color: grey;
 }
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4); // полупрозрачный тёмный фон
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; // поверх всего
+  backdrop-filter: blur(2px); // лёгкое размытие фона
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

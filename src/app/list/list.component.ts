@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import {
   MatCell,
   MatCellDef,
@@ -14,12 +14,10 @@ import {
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatIcon } from '@angular/material/icon';
 import { DatePipe, NgClass } from '@angular/common';
-import { catchError, map, of } from 'rxjs';
+import { map } from 'rxjs';
 import { DateTimeAgoPipe } from '../shared/date-time-ago.pipe';
 import { Todo } from '../shared/todo.interface';
-import { ApiService } from '../shared/api.service';
 import { ActivatedRoute } from '@angular/router';
-import { isSameDayFunction } from '../shared/is-same-day.function';
 import {
   MatAccordion,
   MatExpansionModule,
@@ -29,6 +27,8 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButton } from '@angular/material/button';
+import { StoreService } from '../shared/store.service';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-list',
@@ -55,37 +55,26 @@ import { MatButton } from '@angular/material/button';
     MatExpansionPanelTitle,
     MatExpansionModule,
     MatButton,
+    MatProgressSpinner,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',
 })
 export class ListComponent {
-  private readonly apiService = inject(ApiService);
+  private readonly storeService = inject(StoreService);
   private readonly route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
-
-  readonly todos = signal<Todo[]>([]);
-  readonly error = signal<string | null>(null);
-  readonly loading = signal<boolean>(false);
 
   private readonly mode$ = this.route.data.pipe(
     map(data => data['mode'] || 'list')
   );
   readonly mode = toSignal(this.mode$, { initialValue: 'list' });
 
-  readonly todayTodoList = computed(() =>
-    this.todos().filter(todo =>
-      isSameDayFunction(new Date(todo.expirationDate), new Date())
-    )
-  );
-  readonly upcomingTodoList = computed(() =>
-    this.todos().filter(
-      todo => !isSameDayFunction(new Date(todo.expirationDate), new Date())
-    )
-  );
-  readonly favoriteTodoList = computed(() =>
-    this.todos().filter(todo => todo.isFavorite)
-  );
+  readonly todayTodoList = this.storeService.todayTodoList;
+  readonly upcomingTodoList = this.storeService.upcomingTodoList;
+  readonly favoriteTodoList = this.storeService.favoriteTodoList;
+  readonly error = this.storeService.errorMessage;
+  readonly loading = this.storeService.isLoading;
 
   displayedColumns: string[] = [
     'isDone',
@@ -97,91 +86,35 @@ export class ListComponent {
   ];
 
   constructor() {
+    this.storeService.getTodos();
+
     effect(() => {
-      if (this.error() !== null) {
-        this.snackBar.open(<string>this.error(), 'x');
-      }
-
-      this.loading.set(true);
-      this.error.set(null);
-
-      this.apiService
-        .getTodoList()
-        .pipe(
-          catchError(err => {
-            this.error.set('Ошибка при загрузке данных');
-            return of([]);
-          })
-        )
-        .subscribe(result => {
-          this.todos.set(result);
-          this.loading.set(false);
+      const error = this.storeService.errorMessage();
+      if (error) {
+        this.snackBar.open(error, 'Закрыть', {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
         });
+      }
     });
   }
 
   toggleFavorite(todo: Todo) {
+    console.log('click!!');
     const updated = { ...todo, isFavorite: !todo.isFavorite };
-
-    this.apiService
-      .updateTodo(updated)
-      .pipe(
-        catchError(err => {
-          this.error.set('Ошибка при обновлении избранного');
-          return of(null);
-        })
-      )
-      .subscribe(result => {
-        if (result) this.todos.set(result);
-      });
+    this.storeService.updateTodo(updated);
   }
 
   toggleDone(todo: Todo) {
     const updated = { ...todo, isDone: !todo.isDone };
-
-    this.apiService
-      .updateTodo(updated)
-      .pipe(
-        catchError(err => {
-          this.error.set('Ошибка при обновлении статуса');
-          return of(null);
-        })
-      )
-      .subscribe(result => {
-        if (result) this.todos.set(result);
-      });
+    this.storeService.updateTodo(updated);
   }
 
   deleteTodo(todo: Todo) {
-    this.apiService
-      .deleteTask(todo)
-      .pipe(
-        catchError(err => {
-          this.error.set('Ошибка при удалении');
-          return of(null);
-        })
-      )
-      .subscribe(result => {
-        if (result !== null) {
-          this.todos.set(result);
-        }
-      });
+    this.storeService.deleteTodo(todo);
   }
 
-  showError(todo: Todo) {
-    this.apiService
-      .addTodoWitError({ ...todo, expirationDate: new Date() })
-      .pipe(
-        catchError(err => {
-          console.log(err);
-          this.error.set('Ошибка при добавлении');
-          return of(null);
-        })
-      )
-      .subscribe(result => {
-        if (result !== null) {
-          this.todos.set(result);
-        }
-      });
+  showError() {
+    this.storeService.showError({ expirationDate: new Date() });
   }
 }

@@ -5,3 +5,9 @@ export interface Todo {
   isFavorite: boolean;
   isDone: boolean;
 }
+
+export interface TodoState {
+  isLoading: boolean;
+  todoList: Todo[];
+  error: string | null;
+}
