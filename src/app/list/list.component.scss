@@ -1,8 +1,3 @@
-table {
-  width: 50%;
-  min-width: 50%;
-  margin: 0 auto;
-}
 .favorite {
   color: red;
 }
@@ -11,22 +6,35 @@ table {
   color: grey;
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4); // полупрозрачный тёмный фон
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000; // поверх всего
-  backdrop-filter: blur(2px); // лёгкое размытие фона
-  animation: fadeIn 0.3s ease-in-out;
+table {
+  width: 75%;
+  min-width: 320px;
+  margin: 0 auto;
+  table-layout: fixed;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+th, td {
+  width: 16.66%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.mat-column-title {
+  text-align: left;
+}
+
+td.title-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  table, th, td {
+    font-size: 12px;
+    padding: 4px;
+  }
 }

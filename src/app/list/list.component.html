@@ -214,14 +214,5 @@
   Создать ошибку
 </button>
 
-@if (loading()) {
-  <div class="overlay">
-    <mat-progress-spinner
-      mode="indeterminate"
-      diameter="60"
-      strokeWidth="5"
-      color="primary">
-    </mat-progress-spinner>
-  </div>
-}
+<app-loading-overlay [isLoading]="loading()"></app-loading-overlay>
 

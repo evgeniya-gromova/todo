@@ -93,5 +93,14 @@
         Создать
       </button>
     </form>
+
+    <button
+      mat-flat-button
+      color="primary"
+      [disabled]="!todoForm.valid"
+      (click)="addTodoWithError()">
+      Создать ошибку
+    </button>
   </mat-card-content>
 </mat-card>
+<app-loading-overlay [isLoading]="isLoading"></app-loading-overlay>

@@ -32,8 +32,9 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { StoreService } from '../shared/store.service';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { CountdownTimerDirective } from './countdown-timer.directive';
+import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 // проверка, что не все строки спамят при таймере
 @Component({
@@ -73,9 +74,9 @@ export class NameCellComponent {
     MatExpansionPanelTitle,
     MatExpansionModule,
     MatButton,
-    MatProgressSpinner,
     CountdownTimerDirective,
     NameCellComponent,
+    LoadingOverlayComponent,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',
@@ -84,6 +85,11 @@ export class NameCellComponent {
 export class ListComponent implements OnInit {
   private readonly storeService = inject(StoreService);
   private readonly route = inject(ActivatedRoute);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  isMobile$ = this.breakpointObserver
+    .observe([Breakpoints.Handset])
+    .pipe(map(result => result.matches));
 
   private readonly mode$ = this.route.data.pipe(
     map(data => data['mode'] || 'list')

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { StorageMap } from '@ngx-pwa/local-storage';
-import { map, Observable, switchMap } from 'rxjs';
+import { delay, map, Observable, switchMap } from 'rxjs';
 import { Todo } from './todo.interface';
 import { JSONSchemaArray } from '@ngx-pwa/local-storage/lib/validation/json-schema';
 
@@ -56,8 +56,9 @@ export class ApiService {
   }
 
   addTodo(newTodo: Todo): Observable<Todo[]> {
-    console.log(newTodo);
     return this.getTodoList().pipe(
+      // To see the loading message
+      delay(400),
       map(todoList => [newTodo, ...(todoList ?? [])]),
       switchMap(updatedTodos =>
         this.setTodoList(updatedTodos).pipe(map(() => updatedTodos))
@@ -67,6 +68,8 @@ export class ApiService {
 
   addTodoWitError(newTodo: any): Observable<Todo[]> {
     return this.getTodoList().pipe(
+      // To see the loading message
+      delay(400),
       map(todoList => [newTodo, ...(todoList ?? [])]),
       switchMap(updatedTodos =>
         this.setTodoList(updatedTodos).pipe(map(() => updatedTodos))

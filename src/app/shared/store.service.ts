@@ -26,7 +26,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class StoreService {
   private readonly api = inject(ApiService);
-  private snackBar = inject(MatSnackBar);
+  private readonly snackBar = inject(MatSnackBar);
 
   // Initial state
   private readonly state = signal<TodoState>({

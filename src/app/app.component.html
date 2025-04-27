@@ -1,10 +1,22 @@
 <mat-toolbar color="primary">
-  <nav>
-    <a href="/" mat-button class="logo">My Todo App</a>
+  @if (isMobile$ | async) {
+    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <a [routerLink]="['/add']" mat-menu-item>Add TODO</a>
+      <a [routerLink]="['/list']" mat-menu-item>List TODO</a>
+      <a [routerLink]="['/favorite']" mat-menu-item>Favorite</a>
+    </mat-menu>
+  }
 
-    <a href="/add" mat-button>Add TODO</a>
-    <a href="/list" mat-button>List TODO</a>
-    <a href="/favorite" mat-button>Favorite</a>
+  <nav>
+    <a [routerLink]="['/']" mat-button class="logo">My Todo App</a>
+    @if (!(isMobile$ | async)) {
+      <a [routerLink]="['/add']" routerLinkActive="active" mat-button>Add TODO</a>
+      <a [routerLink]="['/list']" routerLinkActive="active" mat-button>List TODO</a>
+      <a [routerLink]="['/favorite']" routerLinkActive="active" mat-button>Favorite</a>
+    }
   </nav>
 </mat-toolbar>
 

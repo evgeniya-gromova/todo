@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   inject,
   OnDestroy,
@@ -35,6 +36,9 @@ import { Subject, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
 import { TimeValidator } from './time.validator';
 import { DateValidator } from './date.validator';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Todo } from '../shared/todo.interface';
+import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
 
 @Component({
   selector: 'app-add',
@@ -55,6 +59,7 @@ import { DateValidator } from './date.validator';
     MatTimepickerModule,
     MatIcon,
     MatIconButton,
+    LoadingOverlayComponent,
   ],
   providers: [provideNativeDateAdapter()],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,10 +69,13 @@ import { DateValidator } from './date.validator';
 export class AddComponent implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private cd = inject(ChangeDetectorRef);
 
   destroy$ = new Subject<boolean>();
 
   minDate = new Date();
+  isLoading: boolean = false;
 
   todoForm = new FormGroup({
     expirationDate: new FormControl<Date | null>(null, [
@@ -107,25 +115,63 @@ export class AddComponent implements OnInit, OnDestroy {
     this.todoForm.updateValueAndValidity();
 
     if (!this.todoForm.valid) return;
-    console.log({
+
+    this.isLoading = true;
+    const todo: Todo = {
       expirationDate: this.expirationDate?.value?.toISOString() || '',
       expirationTime: this.expirationTime?.value || '',
       title: this.title?.value || '',
       isDone: false,
       isFavorite: false,
-    });
+      createdAt: new Date().toISOString(),
+    };
+
     this.apiService
-      .addTodo({
-        expirationDate: this.expirationDate?.value?.toISOString() || '',
-        expirationTime: this.expirationTime?.value || '',
-        title: this.title?.value || '',
-        isDone: false,
-        isFavorite: false,
+      .addTodo(todo)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.cd.markForCheck();
+          this.router.navigate(['/list']);
+        },
+        error: error => {
+          this.isLoading = false;
+          this.cd.markForCheck();
+          this.snackBar.open(error, 'Закрыть', {
+            duration: 5000,
+            panelClass: ['error-snackbar'],
+          });
+        },
+      });
+  }
+
+  addTodoWithError() {
+    this.todoForm.updateValueAndValidity();
+
+    if (!this.todoForm.valid) return;
+
+    this.isLoading = true;
+
+    this.apiService
+      .addTodoWitError({
         createdAt: new Date().toISOString(),
       })
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.router.navigate(['/list']);
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.cd.markForCheck();
+          this.router.navigate(['/list']);
+        },
+        error: error => {
+          this.isLoading = false;
+          this.cd.markForCheck();
+          this.snackBar.open(error, 'Закрыть', {
+            duration: 5000,
+            panelClass: ['error-snackbar'],
+          });
+        },
       });
   }
 
