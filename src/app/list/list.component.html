@@ -33,7 +33,20 @@
       <ng-container matColumnDef="expirationTime">
         <th mat-header-cell *matHeaderCellDef>Time left</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationTime | dateTimeAgo }}
+          {{ element.expirationTime }}
+
+          <div
+            countdownTimer
+            [countdownTimerExpirationDate]="element.expirationDate"
+            [countdownTimerExpirationTime]="element.expirationTime"
+            #timer="countdownTimer"
+          >{{ timer.countdown() }}
+            @if (timer.countdown()) {
+            <span>
+              {{ timer.countdown() }}
+            </span>
+            }
+          </div>
         </td>
       </ng-container>
 
@@ -96,7 +109,7 @@
       <ng-container matColumnDef="expirationTime">
         <th mat-header-cell *matHeaderCellDef>Time left</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationTime | dateTimeAgo }}
+          {{ element.expirationTime }}
         </td>
       </ng-container>
 
@@ -162,7 +175,7 @@
         <ng-container matColumnDef="expirationTime">
           <th mat-header-cell *matHeaderCellDef>Time left</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.expirationTime | dateTimeAgo }}
+            {{ element.expirationTime }}
           </td>
         </ng-container>
 

@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   OnDestroy,
+  OnInit,
 } from '@angular/core';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatInputModule } from '@angular/material/input';
@@ -23,23 +24,17 @@ import {
 } from '@angular/material/datepicker';
 import { MatInput } from '@angular/material/input';
 import {
-  MatTimepicker,
-  MatTimepickerInput,
-  MatTimepickerToggle,
-} from '@angular/material/timepicker';
-import {
-  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { ApiService } from '../shared/api.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
+import { TimeValidator } from './time.validator';
+import { DateValidator } from './date.validator';
 
 @Component({
   selector: 'app-add',
@@ -54,9 +49,6 @@ import { Router } from '@angular/router';
     MatDatepicker,
     MatDatepickerInput,
     MatInput,
-    MatTimepickerToggle,
-    MatTimepicker,
-    MatTimepickerInput,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -69,22 +61,9 @@ import { Router } from '@angular/router';
   templateUrl: './add.component.html',
   styleUrl: './add.component.scss',
 })
-export class AddComponent implements OnDestroy {
+export class AddComponent implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
-
-  createDateValidator(minDate: Date): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const selectedDate = control.value;
-      if (
-        selectedDate &&
-        selectedDate < new Date(minDate.setHours(0, 0, 0, 0))
-      ) {
-        return { dateTooEarly: true };
-      }
-      return null;
-    };
-  }
 
   destroy$ = new Subject<boolean>();
 
@@ -93,9 +72,11 @@ export class AddComponent implements OnDestroy {
   todoForm = new FormGroup({
     expirationDate: new FormControl<Date | null>(null, [
       Validators.required,
-      this.createDateValidator(this.minDate),
+      DateValidator.validDate(this.minDate),
     ]),
-    expirationTime: new FormControl<Date | null>(null),
+    expirationTime: new FormControl<string | null>(null, [
+      TimeValidator.validTime('expirationDate'),
+    ]),
     title: new FormControl<string>('', [
       Validators.required,
       Validators.maxLength(100),
@@ -114,20 +95,29 @@ export class AddComponent implements OnDestroy {
     return this.todoForm.get('title');
   }
 
-  reset(event: MouseEvent, control: AbstractControl | null) {
-    event.stopPropagation();
-    control?.reset();
+  ngOnInit(): void {
+    this.expirationDate?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.expirationTime?.updateValueAndValidity();
+      });
   }
 
   addTodo() {
     this.todoForm.updateValueAndValidity();
 
     if (!this.todoForm.valid) return;
-
+    console.log({
+      expirationDate: this.expirationDate?.value?.toISOString() || '',
+      expirationTime: this.expirationTime?.value || '',
+      title: this.title?.value || '',
+      isDone: false,
+      isFavorite: false,
+    });
     this.apiService
       .addTodo({
         expirationDate: this.expirationDate?.value?.toISOString() || '',
-        expirationTime: this.expirationTime?.value?.toISOString() || '',
+        expirationTime: this.expirationTime?.value || '',
         title: this.title?.value || '',
         isDone: false,
         isFavorite: false,

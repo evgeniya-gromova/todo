@@ -23,6 +23,13 @@ export class DateTimeAgoPipe implements PipeTransform {
     if (diffMinutes < 60) return `${diffMinutes} мин назад`;
 
     const diffHours = Math.floor(diffMinutes / 60);
+    console.log(
+      date.toDateString(),
+      now.toDateString(),
+      now.getTime(),
+      date.getTime(),
+      diffHours
+    );
     return `${diffHours} ч назад`;
   }
 }

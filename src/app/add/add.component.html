@@ -24,11 +24,11 @@
           matSuffix
           mat-icon-button
           aria-label="Clear"
-          (click)="reset($event, expirationDate)">
+          (click)="expirationDate?.reset()">
           <mat-icon>close</mat-icon>
         </button>
 
-        <mat-hint class="error-message">
+        <mat-error class="error-message">
           @if (expirationDate?.touched) {
             @if (expirationDate?.hasError('required')) {
               <span> Укажите дату </span>
@@ -37,24 +37,32 @@
               <span> Укажите дату не позже текущей </span>
             }
           }
-        </mat-hint>
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field class="full-width">
         <mat-label>Время истечения</mat-label>
         <input
           matInput
-          [matTimepicker]="timepicker"
-          formControlName="expirationTime" />
-        <mat-timepicker #timepicker />
-        <mat-timepicker-toggle [for]="timepicker" matSuffix />
+          formControlName="expirationTime"
+          placeholder="HH:mm"
+        />
+        @if (expirationTime?.hasError('invalidFormat')) {
+          <mat-error>
+            Неверный формат времени (правильно: ЧЧ:ММ)
+          </mat-error >
+        }
 
-        <!-- (click)="expirationTime?.reset()" открывал окно с выбором времени -->
+        @if (expirationTime?.hasError('pastTime')) {
+          <mat-error>
+            Нельзя выбрать время в прошлом
+          </mat-error>
+        }
         <button
           matSuffix
           mat-icon-button
           aria-label="Clear"
-          (click)="reset($event, expirationTime)">
+          (click)="expirationTime?.reset()">
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
@@ -67,7 +75,7 @@
           matSuffix
           mat-icon-button
           aria-label="Clear"
-          (click)="reset($event, title)">
+          (click)="title?.reset()">
           <mat-icon>close</mat-icon>
         </button>
 

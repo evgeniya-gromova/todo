@@ -20,7 +20,6 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { MatIcon } from '@angular/material/icon';
 import { DatePipe, NgClass } from '@angular/common';
 import { map } from 'rxjs';
-import { DateTimeAgoPipe } from '../shared/date-time-ago.pipe';
 import { Todo } from '../shared/todo.interface';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -33,6 +32,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { StoreService } from '../shared/store.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { CountdownTimerDirective } from './countdown-timer.directive';
 
 @Component({
   selector: 'app-list',
@@ -52,13 +52,13 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     MatIcon,
     NgClass,
     DatePipe,
-    DateTimeAgoPipe,
     MatAccordion,
     MatExpansionPanel,
     MatExpansionPanelTitle,
     MatExpansionModule,
     MatButton,
     MatProgressSpinner,
+    CountdownTimerDirective,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',

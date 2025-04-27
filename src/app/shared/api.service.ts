@@ -63,7 +63,6 @@ export class ApiService {
   }
 
   addTodoWitError(newTodo: any): Observable<Todo[]> {
-    console.log(newTodo);
     return this.getTodoList().pipe(
       map(todoList => [newTodo, ...(todoList ?? [])]),
       switchMap(updatedTodos =>
