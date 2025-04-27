@@ -1,9 +1,14 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import { ApiService } from './api.service';
-import { Todo, TodoState } from './todo.interface';
+import {
+  StoreAction,
+  StoreActionsTitles,
+  Todo,
+  TodoState,
+} from './todo.interface';
 import { isSameDayFunction } from './is-same-day.function';
-import { HttpErrorResponse } from '@angular/common/module.d-CnjH8Dlt';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   catchError,
   delay,
@@ -14,87 +19,69 @@ import {
   tap,
 } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StoreService {
   private readonly api = inject(ApiService);
+  private snackBar = inject(MatSnackBar);
 
   // Initial state
-  private state = signal<TodoState>({
+  private readonly state = signal<TodoState>({
     isLoading: false,
     todoList: [],
     error: null,
   });
 
   // Selectors
-  isLoading = computed(() => this.state().isLoading);
-  todoList = computed(() => this.state().todoList);
-  todayTodoList = computed(() =>
+  readonly isLoading = computed(() => this.state().isLoading);
+  readonly todoList = computed(() => this.state().todoList);
+  readonly todayTodoList = computed(() =>
     this.state().todoList.filter(todo =>
       isSameDayFunction(new Date(todo.expirationDate), new Date())
     )
   );
-  upcomingTodoList = computed(() =>
+  readonly upcomingTodoList = computed(() =>
     this.state().todoList.filter(
       todo => !isSameDayFunction(new Date(todo.expirationDate), new Date())
     )
   );
-  favoriteTodoList = computed(() =>
+  readonly favoriteTodoList = computed(() =>
     this.state().todoList.filter(todo => todo.isFavorite)
   );
-  errorMessage = computed(() => this.state().error);
+  readonly errorMessage = computed(() => this.state().error);
 
-  private actionsSubject = new Subject<{ action: string; property?: any }>();
+  private actionsSubject = new Subject<StoreAction>();
 
   constructor() {
     this.actionsSubject
       .pipe(
-        // Set the loading indicator
-        tap(() => this.setLoadingIndicator(true)),
         // Set no error
         tap(() => this.setError(null)),
+        // Set the loading indicator
+        tap(() => this.setLoadingIndicator(true)),
+        switchMap(actionObj => {
+          const { action } = actionObj;
+          const property =
+            'property' in actionObj ? actionObj.property : undefined;
 
-        switchMap(({ action, property }) => {
-          console.log(action, property);
-          switch (action) {
-            case 'getTodos':
-              return this.api.getTodoList().pipe(
-                catchError(err => {
-                  this.setError(err);
-                  return of(null);
-                })
-              );
-            case 'updateTodo':
-              return this.api.updateTodo(property).pipe(
-                catchError(err => {
-                  this.setError(err);
-                  return of(null);
-                })
-              );
-            case 'deleteTodo':
-              return this.api.deleteTask(property).pipe(
-                catchError(err => {
-                  this.setError(err);
-                  return of(null);
-                })
-              );
-            case 'showError':
-              return this.api.addTodoWitError(property).pipe(
-                catchError(err => {
-                  this.setError(err);
-                  return of(null);
-                })
-              );
-            default:
-              return this.api.getTodoList().pipe(
-                catchError(err => {
-                  this.setError(err);
-                  return of(null);
-                })
-              );
-          }
+          const actionMap: Record<
+            StoreActionsTitles,
+            Observable<Todo[] | null>
+          > = {
+            [StoreActionsTitles.GetTodos]: this.api.getTodoList(),
+            [StoreActionsTitles.UpdateTodo]: this.api.updateTodo(property),
+            [StoreActionsTitles.DeleteTodo]: this.api.deleteTask(property),
+            [StoreActionsTitles.ShowError]: this.api.addTodoWitError(property),
+          };
+          return actionMap[action].pipe(
+            catchError(err => {
+              this.setError(err);
+              return of(null);
+            })
+          );
         }),
 
         // To see the loading message
@@ -106,6 +93,16 @@ export class StoreService {
           this.setTodoList(todoList);
         }
       });
+
+    effect(() => {
+      const error = this.errorMessage();
+      if (error) {
+        this.snackBar.open(error, 'Закрыть', {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        });
+      }
+    });
   }
   private setLoadingIndicator(isLoading: boolean) {
     this.state.update(state => ({
@@ -115,19 +112,28 @@ export class StoreService {
   }
 
   public getTodos() {
-    this.actionsSubject.next({ action: 'getTodos' });
+    this.actionsSubject.next({ action: StoreActionsTitles.GetTodos });
   }
 
   updateTodo(todo: Todo) {
-    this.actionsSubject.next({ action: 'updateTodo', property: todo });
+    this.actionsSubject.next({
+      action: StoreActionsTitles.UpdateTodo,
+      property: todo,
+    });
   }
 
   deleteTodo(todo: Todo) {
-    this.actionsSubject.next({ action: 'deleteTodo', property: todo });
+    this.actionsSubject.next({
+      action: StoreActionsTitles.DeleteTodo,
+      property: todo,
+    });
   }
 
   showError(todo: any) {
-    this.actionsSubject.next({ action: 'showError', property: todo });
+    this.actionsSubject.next({
+      action: StoreActionsTitles.ShowError,
+      property: todo,
+    });
   }
 
   private setTodoList(todos: Todo[]): void {

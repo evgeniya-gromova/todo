@@ -1,4 +1,9 @@
-import { Component, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import {
   MatCell,
   MatCellDef,
@@ -25,7 +30,6 @@ import {
   MatExpansionPanelTitle,
 } from '@angular/material/expansion';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButton } from '@angular/material/button';
 import { StoreService } from '../shared/store.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -49,7 +53,6 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     NgClass,
     DatePipe,
     DateTimeAgoPipe,
-    DateTimeAgoPipe,
     MatAccordion,
     MatExpansionPanel,
     MatExpansionPanelTitle,
@@ -59,11 +62,11 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListComponent {
+export class ListComponent implements OnInit {
   private readonly storeService = inject(StoreService);
   private readonly route = inject(ActivatedRoute);
-  private snackBar = inject(MatSnackBar);
 
   private readonly mode$ = this.route.data.pipe(
     map(data => data['mode'] || 'list')
@@ -85,22 +88,11 @@ export class ListComponent {
     'delete',
   ];
 
-  constructor() {
+  ngOnInit() {
     this.storeService.getTodos();
-
-    effect(() => {
-      const error = this.storeService.errorMessage();
-      if (error) {
-        this.snackBar.open(error, 'Закрыть', {
-          duration: 5000,
-          panelClass: ['error-snackbar'],
-        });
-      }
-    });
   }
 
   toggleFavorite(todo: Todo) {
-    console.log('click!!');
     const updated = { ...todo, isFavorite: !todo.isFavorite };
     this.storeService.updateTodo(updated);
   }
