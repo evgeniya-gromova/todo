@@ -4,6 +4,7 @@ export interface Todo {
   expirationTime: string;
   isFavorite: boolean;
   isDone: boolean;
+  createdAt: string;
 }
 
 export interface TodoState {

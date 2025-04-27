@@ -31,13 +31,16 @@ export class ApiService {
         isDone: {
           type: 'boolean',
         },
+        createdAt: {
+          type: 'string',
+        },
       },
       required: [
         'title',
         'expirationDate',
-        'expirationTime',
         'isFavorite',
         'isDone',
+        'createdAt',
       ],
     },
   };

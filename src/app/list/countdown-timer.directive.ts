@@ -5,10 +5,10 @@ import {
   OnInit,
   signal,
   computed,
-  effect,
 } from '@angular/core';
 import { interval, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { formatDate } from '@angular/common';
 
 @Directive({
   selector: '[countdownTimer]',
@@ -24,26 +24,31 @@ export class CountdownTimerDirective implements OnInit, OnDestroy {
   private nowSignal = signal(new Date());
 
   countdown = computed(() => {
-    const expiration = new Date(
-      `${this.expirationDate}T${this.expirationTime}:00`
-    );
+    // expirationTime не обяательное поле
+    if (this.expirationTime.length === 0) {
+      return formatDate(this.expirationDate, 'MMM d, y', 'en-US');
+    }
+
+    const expiration = new Date(this.expirationDate);
+    const [expirationHours, expirationMinutes] = this.expirationTime.split(':');
+    expiration.setHours(+expirationHours);
+    expiration.setMinutes(+expirationMinutes);
+
     const now = this.nowSignal();
     const diffMs = expiration.getTime() - now.getTime();
     const diffSec = Math.floor(diffMs / 1000);
 
-    if (diffSec <= 0) {
-      return 'Время вышло';
+    // если таймер вышел или разница меньше часа
+    if (diffSec <= 0 || diffSec > 3600) {
+      return diffSec > 60 * 60 * 24
+        ? formatDate(this.expirationDate, 'MMM d, y', 'en-US')
+        : this.expirationTime;
     }
 
     const minutes = Math.floor(diffSec / 60);
     const seconds = diffSec % 60;
 
-    if (diffSec <= 3600) {
-      // только если меньше часа
-      return `Осталось ${minutes} мин ${seconds} сек`;
-    } else {
-      return null; // не показывать
-    }
+    return `0h ${minutes}m ${seconds}s`;
   });
 
   ngOnInit() {

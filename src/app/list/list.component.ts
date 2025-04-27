@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  Input,
   OnInit,
 } from '@angular/core';
 import {
@@ -34,6 +35,21 @@ import { StoreService } from '../shared/store.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { CountdownTimerDirective } from './countdown-timer.directive';
 
+// проверка, что не все строки спамят при таймере
+@Component({
+  selector: 'app-name-cell',
+  standalone: true,
+  template: '{{ displayedName }}',
+})
+export class NameCellComponent {
+  @Input() name!: string;
+
+  get displayedName() {
+    console.log('NameCellComponent: change detection', this.name);
+    return this.name;
+  }
+}
+
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -59,6 +75,7 @@ import { CountdownTimerDirective } from './countdown-timer.directive';
     MatButton,
     MatProgressSpinner,
     CountdownTimerDirective,
+    NameCellComponent,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',

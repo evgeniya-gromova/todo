@@ -18,14 +18,14 @@
       <!-- Title Column -->
       <ng-container matColumnDef="title">
         <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+        <td mat-cell *matCellDef="let element"><app-name-cell [name]="element.title"></app-name-cell></td>
       </ng-container>
 
-      <!-- ExpirationDate Column -->
+      <!-- CreatedAt Column -->
       <ng-container matColumnDef="expirationDate">
         <th mat-header-cell *matHeaderCellDef>Created at</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationDate | date: 'MMM d, y' }}
+          {{ element.createdAt | date: 'MMM d, y' }}
         </td>
       </ng-container>
 
@@ -33,19 +33,13 @@
       <ng-container matColumnDef="expirationTime">
         <th mat-header-cell *matHeaderCellDef>Time left</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationTime }}
-
           <div
             countdownTimer
             [countdownTimerExpirationDate]="element.expirationDate"
             [countdownTimerExpirationTime]="element.expirationTime"
             #timer="countdownTimer"
-          >{{ timer.countdown() }}
-            @if (timer.countdown()) {
-            <span>
-              {{ timer.countdown() }}
-            </span>
-            }
+          >
+            {{ timer.countdown() }}
           </div>
         </td>
       </ng-container>
@@ -97,19 +91,19 @@
         <td mat-cell *matCellDef="let element">{{ element.title }}</td>
       </ng-container>
 
-      <!-- ExpirationDate Column -->
+      <!-- CreatedAt Column -->
       <ng-container matColumnDef="expirationDate">
         <th mat-header-cell *matHeaderCellDef>Created at</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationDate | date: 'MMM d, y' }}
+          {{ element.createdAt | date: 'MMM d, y' }}
         </td>
       </ng-container>
 
-      <!-- ExpirationTime Column -->
+      <!-- ExpirationDate Column -->
       <ng-container matColumnDef="expirationTime">
         <th mat-header-cell *matHeaderCellDef>Time left</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.expirationTime }}
+          {{ element.expirationDate | date: 'MMM d, y' }}
         </td>
       </ng-container>
 
@@ -163,11 +157,11 @@
           <td mat-cell *matCellDef="let element">{{ element.title }}</td>
         </ng-container>
 
-        <!-- ExpirationDate Column -->
+        <!-- CreatedAt Column -->
         <ng-container matColumnDef="expirationDate">
           <th mat-header-cell *matHeaderCellDef>Created at</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.expirationDate | date: 'MMM d, y' }}
+            {{ element.createdAt | date: 'MMM d, y' }}
           </td>
         </ng-container>
 
@@ -175,7 +169,14 @@
         <ng-container matColumnDef="expirationTime">
           <th mat-header-cell *matHeaderCellDef>Time left</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.expirationTime }}
+            <div
+              countdownTimer
+              [countdownTimerExpirationDate]="element.expirationDate"
+              [countdownTimerExpirationTime]="element.expirationTime"
+              #timer="countdownTimer"
+            >
+              {{ timer.countdown() }}
+            </div>
           </td>
         </ng-container>
 

@@ -121,10 +121,10 @@ export class AddComponent implements OnInit, OnDestroy {
         title: this.title?.value || '',
         isDone: false,
         isFavorite: false,
+        createdAt: new Date().toISOString(),
       })
       .pipe(takeUntil(this.destroy$))
-      .subscribe(data => {
-        console.log(data);
+      .subscribe(() => {
         this.router.navigate(['/list']);
       });
   }
